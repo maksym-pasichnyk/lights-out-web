@@ -1,0 +1,354 @@
+<html>
+<head>
+    <title>Lights Out Classic</title>
+</head>
+
+<body bgcolor="white" background="images/backgrnd/cubeback.gif">
+    <div align="center">
+        <center>
+            <script language="JavaScript1.1" type="text/javascript">
+                version = 1.1;
+            </script>
+
+            <script language="JavaScript" type="text/javascript">
+                if (version == null) {
+                    document.write("<p><big><big><b>Your browser does not have Javascript 1.1 capabilities. You need Netscape 3+ or MSIE 4+.<\/b><\/big><\/big>");
+                }
+            </script>
+
+            <noscript>
+                <p><big><big><b>Your browser does not have Javascript 1.1 capabilities. You need Netscape 3+ or MSIE 4+.</b></big></big>
+            </noscript>
+
+            <script language="JavaScript1.1" type="text/javascript">
+                var imagedir = "images/lights/";
+
+                function preload() {
+                    this.length = preload.arguments.length;
+                    for (var i = 0; i < this.length; i++) {
+                        this[i] = new Image();
+                        this[i].src = imagedir + preload.arguments[i];
+                    }
+                }
+
+                var pics = new preload("lo00.gif", "lo10.gif", "lo01.gif", "lo11.gif", "lo0.gif", "lo1.gif", "../buttons/edit.gif", "../buttons/edit2.gif", "../buttons/solve.gif", "../buttons/solve2.gif");
+
+                var Mode = Object.freeze({
+                    FREE: 0,
+                    SOLVE: 1,
+                    EDIT: 2,
+                    HINT: 3
+                });
+
+                var moves = 0;
+                var mode = Mode.FREE;
+
+                var N = 6;
+
+                var table = [];
+                var hints = [];
+                for (var y = 0; y < N; y++) {
+                    table[y] = [];
+                    hints[y] = [];
+                }
+
+                document.write("<tr><td colspan=7 align=center>");
+                document.writeln("<form name=puzzlesform>puzzleszle:");
+                document.writeln("<select name=puzzles size=1 onChange='initpuzzles(this.selectedIndex); return false;'>");
+                document.writeln("<option>---");
+
+                //for (var b = 1; b <= 2; b++) {
+                //    for (var a = 1; a <= 25; a++) {
+                //        document.writeln("<option>Set " + b + " puzzleszle " + a);
+                //    }
+                //}
+
+                //for (var b = 1; b <= 2; b++) {
+                //    for (var a = 1; a <= 25; a++) {
+                //        document.writeln("<option>Lo2000 " + b + " puzzles " + a);
+                //    }
+                //}
+
+                document.writeln("<table style=\"margin: 0px auto;\" cellpadding=0 cellspacing=0 border=0>");
+                document.writeln("<\/select><\/form><\/td><\/tr>");
+                document.write("<tr><td colspan=7>");
+                document.write("<a href='javascript:void hint();'><img src='images/buttons/solve.gif' height=16 width=48 border=0 name='hint'><\/a>");
+                document.write("<a href='javascript:void mix();'><img src='images/buttons/mix.gif' height=16 width=48 border=0><\/a>");
+                document.write("<a href='javascript:void reset();'><img src='images/buttons/reset.gif' height=16 width=48 border=0><\/a>");
+                document.write("<a href='javascript:void edit();'><img src='images/buttons/edit.gif' height=16 width=48 border=0 name='edit'><\/a>");
+                document.write("<a href='javascript:void help();'><img src='images/buttons/help.gif' height=16 width=48 border=0><\/a>");
+                document.writeln("<\/td><\/tr>");
+                document.writeln("<\/table>");
+
+                document.writeln("<table style=\"margin: 0px auto;\" cellpadding=0 cellspacing=0 border=0>");
+                for (var y = 0; y < N; y++) {
+                    document.writeln("<tr>");
+                    for (var x = 0; x < N; x++) {
+                        document.writeln("  <td><a href='javascript:void clicked(" + x + "," + y + ");'>" +
+                            "<img src='" + pics[4].src + "' height=" + 30 + " width=" + 30 + " + name='brd" + x + "_" + y + "'><\/a><\/td>");
+                    }
+                    document.writeln("<\/tr>");
+                }
+
+                document.writeln("<\/table>");
+
+                function initbrd() {
+                    for (var y = 0; y < N; y++) {
+                        for (var x = 0; x < N; x++) {
+                            table[y][x] = true;
+                            hints[y][x] = false;
+                        }
+                    }
+                    moves = 0;
+                }
+
+                function help() {
+                    alert("Lights-Out Help\n\nAim: Press the buttons to turn off the lights.\n"
+                        + "Other controls:\n"
+                        + "Solve: Show solution.\n"
+                        + "Mix:   Randomly mix up the board.\n"
+                        + "Reset: Clear the board.\n"
+                        + "Edit:  Go to edit mode. Allows you to set up a position to solve. Press Edit again when finished.\n"
+                        + "puzzleszle: Select one of the built-in puzzles.\n"
+                        );
+                }
+
+                function initpuzzles(p) {
+
+                }
+
+                function draw(x, y) {
+                    var img = table[y][x] ? 1 : 0;
+
+                    if (mode == Mode.HINT) {
+                        if (hints[y][x]) {
+                            img += 2;
+                        }
+                    } else {
+                        img += 4;
+                    }
+
+                    document.images["brd" + x + "_" + y].src = pics[img].src;
+                }
+
+                function redraw() {
+                    document.images["edit"].src = pics[(mode == Mode.EDIT) ? 7 : 6].src;
+                    document.images["hint"].src = pics[(mode == Mode.HINT) ? 9 : 8].src;
+
+                    for (var y = 0; y < N; y++) {
+                        for (var x = 0; x < N; x++) {
+                            draw(x, y);
+                        }
+                    }
+                }
+
+                function onResize() {
+                    redraw();
+                }
+
+                reset();
+
+                function reset() {
+                    mode = Mode.SOLVE;
+                    initbrd();
+                    redraw();
+                }
+
+                function toggle(x, y) {
+                    if (x < 0 || x >= N || y < 0 || y >= N) return;
+
+                    table[y][x] = !table[y][x];
+
+                    draw(x, y);
+                }
+
+                function toggle_hint(x, y) {
+                    hints[y][x] = !hints[y][x];
+                }
+
+                function clicked(x, y) {
+                    if (mode == Mode.EDIT) {
+                        toggle(x, y);
+                    } else {
+                        if (mode == Mode.HINT) {
+                            toggle_hint(x, y);
+                        }
+
+                        toggle(x, y);
+                        toggle(x - 1, y);
+                        toggle(x + 1, y);
+                        toggle(x, y - 1);
+                        toggle(x, y + 1);
+
+                        moves++;
+
+                        if ((mode == Mode.SOLVE) && solved()) {
+                            alert("You solved it in " + moves + " moves.\nYou don't get a prize for this though!");
+                            mode = Mode.FREE;
+                        }
+                    }
+                    this.focus();
+                }
+
+                function solved() {
+                    for (var y = 0; y < N; y++) {
+                        for (var x = 0; x < N; x++) {
+                            if (table[y][x]) {
+                                return false;
+                            }
+                        }
+                    }
+                    return true;
+                }
+
+                function get_near(x, y) {
+                    return [
+                                    [x, y - 1],
+                        [x - 1, y], [x,     y], [x + 1, y],
+                                    [x, y + 1]
+                    ];
+                }
+
+                function mix() {
+                    initbrd();
+
+                    for (var y = 0; y < N; y++) {
+                        for (var x = 0; x < N; x++) {
+                            var near = get_near(x, y);
+
+                            if (Math.random() > 0.5) {
+                                toggle(near[0][0], near[0][1]);
+                                toggle(near[1][0], near[1][1]);
+                                toggle(near[2][0], near[2][1]);
+                                toggle(near[3][0], near[3][1]);
+                                toggle(near[4][0], near[4][1]);
+                            }
+                        }
+                    }
+
+                    mode = Mode.SOLVE;
+
+                    redraw();
+
+                    moves = 0;
+                }
+
+                function edit() {
+                    if (mode == Mode.EDIT) {
+                        mode = Mode.SOLVE;
+                    } else {
+                        mode = Mode.EDIT;
+                    }
+                    redraw();
+                }
+
+                function unique_set(a, b) {
+                    var out = new Set();
+
+                    var e1 = [...a];
+                    var e2 = [...b];
+
+                    for (var i in e2) {
+                        if (!a.has(e2[i])) {
+                            out.add(e2[i]);
+                        }
+                    }
+
+                    for (var i in e1) {
+                        if (!b.has(e1[i])) {
+                            out.add(e1[i]);
+                        }
+                    }
+
+                    return out;
+                }
+
+                function solve() {
+                    var M = N;
+                    var NM = N * M;
+
+                    var eqs = [];
+
+                    var ij = 0;
+                    for (var i = 0; i < N; i++) {
+                        for (var j = 0; j < M; j++) {
+                            var eq = new Set();
+
+                            for (var d = -1; d <= 1; d++) {
+                                if (0 <= (i + d)) {
+                                    if ((i + d) < N) {
+                                        eq.add(ij + d * M);
+                                    }
+                                }
+
+                                if (d != 0) {
+                                    if (0 <= (j + d)) {
+                                        if ((j + d) < M) {
+                                            eq.add(ij + d);
+                                        }
+                                    }
+                                }
+                            }
+
+
+                            eqs[ij] = {
+                                first: table[i][j],
+                                second: eq
+                            };
+
+                            ij += 1;
+                        }
+                    }
+
+                    for (var i = 0; i < NM; i++) {
+		                for (var j = i; j < NM; j++) {
+		                    if (eqs[j].second.has(i)) {
+		                        var t = eqs[i];
+		                        eqs[i] = eqs[j];
+		                        eqs[j] = t;
+				                break;
+                            }
+		                }
+		                
+		                for (var j = i + 1; j < NM; j++) {
+		                    if (eqs[j].second.has(i)) {
+		                        eqs[j].first ^= eqs[i].first;
+		                        eqs[j].second = unique_set(eqs[j].second, eqs[i].second);
+		                    }
+		                }
+                    }
+
+                    for (var i = NM - 1; i >= 0; i--) {
+                        for (var j = 0; j < i; j++) {
+                            if (eqs[j].second.has(i)) {
+                                eqs[j].first ^= eqs[i].first;
+                                eqs[j].second = unique_set(eqs[j].second, eqs[i].second);
+                            }
+                        }
+                    }
+
+                    ij = 0;
+                    for (var i = 0; i < N; i++) {
+                        for (var j = 0; j < M; j++) {
+                            hints[i][j] = (eqs[ij].first != 0);
+
+                            ij += 1;
+                        }
+                    }
+                }
+
+                function hint() {
+                    if (mode == Mode.HINT) {
+                        mode = Mode.FREE;
+                    } else {
+                        mode = Mode.HINT;
+
+                        solve();
+                    }
+                    redraw();
+                }
+            </script>
+        </center>
+    </div>
+</body>
+</html>

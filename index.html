@@ -120,7 +120,7 @@
                 function draw(x, y) {
                     var img = table[y][x] ? 1 : 0;
 
-                    if (mode == Mode.HINT) {
+                    if (mode === Mode.HINT) {
                         if (hints[y][x]) {
                             img += 2;
                         }
@@ -132,8 +132,8 @@
                 }
 
                 function redraw() {
-                    document.images["edit"].src = pics[(mode == Mode.EDIT) ? 7 : 6].src;
-                    document.images["hint"].src = pics[(mode == Mode.HINT) ? 9 : 8].src;
+                    document.images["edit"].src = pics[(mode === Mode.EDIT) ? 7 : 6].src;
+                    document.images["hint"].src = pics[(mode === Mode.HINT) ? 9 : 8].src;
 
                     for (var y = 0; y < N; y++) {
                         for (var x = 0; x < N; x++) {
@@ -167,10 +167,10 @@
                 }
 
                 function clicked(x, y) {
-                    if (mode == Mode.EDIT) {
+                    if (mode === Mode.EDIT) {
                         toggle(x, y);
                     } else {
-                        if (mode == Mode.HINT) {
+                        if (mode === Mode.HINT) {
                             toggle_hint(x, y);
                         }
 
@@ -182,7 +182,7 @@
 
                         moves++;
 
-                        if ((mode == Mode.SOLVE) && solved()) {
+                        if ((mode === Mode.SOLVE) && solved()) {
                             alert("You solved it in " + moves + " moves.\nYou don't get a prize for this though!");
                             mode = Mode.FREE;
                         }
@@ -234,7 +234,7 @@
                 }
 
                 function edit() {
-                    if (mode == Mode.EDIT) {
+                    if (mode === Mode.EDIT) {
                         mode = Mode.SOLVE;
                     } else {
                         mode = Mode.EDIT;
@@ -281,7 +281,7 @@
                                     }
                                 }
 
-                                if (d != 0) {
+                                if (d !== 0) {
                                     if (0 <= (j + d)) {
                                         if ((j + d) < M) {
                                             eq.add(ij + d);
@@ -330,7 +330,7 @@
                     ij = 0;
                     for (var i = 0; i < N; i++) {
                         for (var j = 0; j < M; j++) {
-                            hints[i][j] = (eqs[ij].first != 0);
+                            hints[i][j] = (eqs[ij].first !== 0);
 
                             ij += 1;
                         }
@@ -338,11 +338,10 @@
                 }
 
                 function hint() {
-                    if (mode == Mode.HINT) {
+                    if (mode === Mode.HINT) {
                         mode = Mode.FREE;
                     } else {
                         mode = Mode.HINT;
-
                         solve();
                     }
                     redraw();
